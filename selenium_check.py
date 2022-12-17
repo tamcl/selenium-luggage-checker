@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
+from tenacity import retry, stop_after_attempt
 
 
 class selenium_checker:
@@ -11,19 +12,14 @@ class selenium_checker:
         self.driver = None
         self.status = None
 
+    @retry(stop=stop_after_attempt(5))
     def run(self):
         self.create_driver()
         self.access_website()
-        while not self.check_loaded('record__reference'):
-            time.sleep(1)
-        self.driver.find_element(by=By.ID, value='record__reference').send_keys(self.code)
-        self.driver.find_element(by=By.ID, value='skname__paxnameinternet').send_keys(self.username)
-        self.driver.find_element(by=By.ID, value='btn_action').click()
-        while not self.check_loaded('status0Content'):
-            time.sleep(1)
-        time.sleep(10)
-        status = self.driver.find_element(by=By.ID, value='status0Content')
-        self.status = status.text
+        self.login()
+        self.get_status()
+        if self.status == '':
+            raise Exception('error accessing status')
         self.driver.close()
         return self.check_text(self.status)
 
@@ -33,6 +29,21 @@ class selenium_checker:
     def close_driver(self):
         if self.driver is not None:
             self.driver.close()
+
+    def login(self):
+        while not self.check_loaded('record__reference'):
+            time.sleep(1)
+        self.driver.find_element(by=By.ID, value='record__reference').send_keys(self.code)
+        self.driver.find_element(by=By.ID, value='skname__paxnameinternet').send_keys(self.username)
+        self.driver.find_element(by=By.ID, value='btn_action').click()
+
+    def get_status(self):
+        while not self.check_loaded('status0Content'):
+            time.sleep(1)
+        time.sleep(5)
+        status = self.driver.find_element(by=By.ID, value='status0Content')
+        self.status = status.text
+        return self.status
 
     def access_website(self, url='https://wtrweb.worldtracer.aero/WTRInternet/filedsp/w6.htm'):
         self.driver.get(url)
@@ -49,6 +60,3 @@ class selenium_checker:
             return False
         else:
             return True
-
-
-

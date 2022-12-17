@@ -1,6 +1,9 @@
+import logging
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.firefox.options import Options
 from tenacity import retry, stop_after_attempt
 
 
@@ -21,14 +24,18 @@ class selenium_checker:
             self.get_status()
             if self.status == '':
                 raise Exception('error accessing status')
+            self.get_screenshoot()
         except Exception as e:
+            logging.error(e)
             raise
         finally:
             self.driver.close()
         return self.check_text(self.status)
 
     def create_driver(self):
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.headless = True
+        self.driver = webdriver.Firefox(options=options)
 
     def close_driver(self):
         if self.driver is not None:
@@ -64,3 +71,6 @@ class selenium_checker:
             return False
         else:
             return True
+
+    def get_screenshoot(self):
+        self.driver.get_screenshot_as_file("capture.png")

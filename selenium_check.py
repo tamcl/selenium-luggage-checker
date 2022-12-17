@@ -8,9 +8,10 @@ from tenacity import retry, stop_after_attempt
 
 
 class selenium_checker:
-    def __init__(self, code, username):
+    def __init__(self, code, username, headless = False):
         self.code = code
         self.username = username
+        self.headless = headless
 
         self.driver = None
         self.status = None
@@ -33,9 +34,12 @@ class selenium_checker:
         return self.check_text(self.status)
 
     def create_driver(self):
-        options = Options()
-        options.headless = True
-        self.driver = webdriver.Firefox(options=options)
+        param = {}
+        if self.headless:
+            options = Options()
+            options.headless = True
+            param.update(dict(options=options))
+        self.driver = webdriver.Firefox(**param)
 
     def close_driver(self):
         if self.driver is not None:

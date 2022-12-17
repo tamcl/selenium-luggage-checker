@@ -18,7 +18,7 @@ status = False
 
 while not status:
     print(datetime.datetime.now())
-    checker = selenium_checker(code_text, name_text)
+    checker = selenium_checker(code_text, name_text, True)
     status = checker.run()
 
     if status:

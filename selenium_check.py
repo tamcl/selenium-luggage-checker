@@ -15,12 +15,16 @@ class selenium_checker:
     @retry(stop=stop_after_attempt(5))
     def run(self):
         self.create_driver()
-        self.access_website()
-        self.login()
-        self.get_status()
-        if self.status == '':
-            raise Exception('error accessing status')
-        self.driver.close()
+        try:
+            self.access_website()
+            self.login()
+            self.get_status()
+            if self.status == '':
+                raise Exception('error accessing status')
+        except Exception as e:
+            raise
+        finally:
+            self.driver.close()
         return self.check_text(self.status)
 
     def create_driver(self):
